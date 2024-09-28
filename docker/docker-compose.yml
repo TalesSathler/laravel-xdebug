@@ -1,0 +1,61 @@
+networks:
+  laravel-xdebug-network:
+      driver: bridge
+
+services:
+    db:
+        image: postgres
+        container_name: laravel-xdebug-postgres
+        deploy:
+            restart_policy:
+                condition: on-failure
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRESQL_USERNAME: postgres
+            POSTGRESQL_PASSWORD: postgres
+            PGDATA: /var/lib/postgresql/data/laravel-xdebug-pgdata
+        ports:
+            - "5432:5432"
+        networks:
+            - laravel-xdebug-network
+
+    redis:
+        image: redis
+        container_name: laravel-xdebug-redis
+        networks:
+            - laravel-xdebug-network
+        restart: always
+
+    app:
+        container_name: laravel-xdebug-app
+        build: app
+        volumes:
+            - '../:/var/www'
+            - ./app/www.conf:/etc/php/8.3/fpm/pool.d/www.conf
+            - ./app/xdebug.ini:/etc/php/8.3/fpm/conf.d/20-xdebug.ini
+        ports:
+            - "9000:9000"
+        networks:
+            - laravel-xdebug-network
+        depends_on:
+            - db
+            - redis
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
+    web:
+        container_name: laravel-xdebug-nginx
+        build: nginx
+        volumes:
+            - '../:/var/www'
+            - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+        ports:
+            - '80:80'
+            - '443:443'
+        networks:
+            - laravel-xdebug-network
+        depends_on:
+            - app
+        links:
+           - app
