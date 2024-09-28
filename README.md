@@ -8,7 +8,7 @@ Simple project with xdebug.
 
 - Laravel 10
 - Docker
-- Php8.3
+- Php8.3-fpm
 - Postgres
 - Nginx
 - Redis
